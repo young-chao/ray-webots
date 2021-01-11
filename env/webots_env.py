@@ -1,16 +1,23 @@
 import math
 import os
 import gym
+import subprocess
+import psutil
+import threading
 from gym.spaces import Box, Discrete
 from controller import Supervisor
 
+webots_list = []
 os.environ["WEBOTS_ROBOT_NAME"] = 'e-puck1'
 os.environ["WEBOTS_PID"] = '3084'
 TIME_STEP = 640
 MAX_SPEED = 6.28
 area_map = [[0 for col in range(16)] for row in range(16)]
-print(area_map)
-print(os.environ["WEBOTS_PID"])
+
+
+def make_env():
+    print("make a webots env.")
+    subprocess.run(['webots', '--minimize'])
 
 
 class WebotsEnv(gym.Env):
@@ -21,6 +28,19 @@ class WebotsEnv(gym.Env):
     right = 4
 
     def __init__(self):
+        self.webots_id = 0
+        for proc in psutil.process_iter():
+            if proc.name() == "webots":
+                webots_list.append(proc.pid)
+                print("pid-%d,name:%s" % (proc.pid, proc.name()))
+        threading.Thread(target=make_env).start()
+        for proc in psutil.process_iter():
+            if proc.name() == "webots":
+                if proc.pid not in webots_list:
+                    self.webots_id = proc.pid
+                    print("pid-%d,name:%s" % (proc.pid, proc.name()))
+        os.environ["WEBOTS_PID"] = str(self.webots_id)
+        print(os.environ["WEBOTS_PID"])
         self.robot = Supervisor()
         self.map = area_map
         self.num = 0
@@ -120,3 +140,18 @@ class WebotsEnv(gym.Env):
     def render(self):
         print("Area Map is like this:")
         print(self.map)
+
+
+if __name__ == '__main__':
+    env = WebotsEnv()
+    obs0 = env.reset()
+    num = 0
+    while True:
+        env.robot.step(TIME_STEP)
+        action0 = env.action_space.sample()
+        obs0, reward0, done0, info0 = env.step(action0)
+        print('step-', num, ':', reward0, env.map)
+        num = num + 1
+        if num % 20 == 0:
+            observation = env.reset()
+    env.close()
