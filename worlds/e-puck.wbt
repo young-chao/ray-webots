@@ -6,8 +6,8 @@ WorldInfo {
   title "E-puck simulation"
 }
 Viewpoint {
-  orientation 0.00042321121531270386 0.7264543345781997 0.6872146103400394 3.1288689229239757
-  position -0.13283209846959979 4.771985716079324 -0.26902659617266567
+  orientation -0.0008653244692694163 0.7264480979474697 0.6872207885403836 3.126144730486015
+  position -0.23186404093190915 4.5813584986717375 -0.2803182830023433
   follow "e-puck1"
 }
 TexturedBackground {
@@ -15,11 +15,20 @@ TexturedBackground {
 TexturedBackgroundLight {
 }
 DEF robot-1 E-puck {
-  translation 0.0625 -3.10074e-05 0.0625
-  rotation 0 1 0 1.57
+  translation 0.0625 -6.3953e-05 0.0625
+  rotation 2.977553598114568e-06 0.9999999999911342 2.977553598114568e-06 1.57
   name "e-puck1"
   controller "<extern>"
   supervisor TRUE
+  emitter_channel 2
+}
+DEF robot-2 E-puck {
+  translation 0.5624999999032935 -6.396820998649105e-05 0.062499999999918975
+  rotation 2.9775470625255925e-06 0.999999999991132 2.9782934461190887e-06 1.5700000000088492
+  name "e-puck2"
+  controller "<extern>"
+  supervisor TRUE
+  receiver_channel 2
 }
 RectangleArena {
   floorSize 2 2
