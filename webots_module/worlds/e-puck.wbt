@@ -1,0 +1,44 @@
+#VRML_SIM R2020a utf8
+WorldInfo {
+  info [
+    "The model of the E-puck robot"
+  ]
+  title "E-puck simulation"
+}
+Viewpoint {
+  orientation -0.0008653244692694163 0.7264480979474697 0.6872207885403836 3.126144730486015
+  position -0.23186404093190915 4.5813584986717375 -0.2803182830023433
+  follow "e-puck1"
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+DEF robot-1 E-puck {
+  translation 0.0625 -6.3953e-05 0.0625
+  rotation 2.977553598114568e-06 0.9999999999911342 2.977553598114568e-06 1.57
+  name "e-puck1"
+  controller "<extern>"
+  supervisor TRUE
+  emitter_channel 2
+}
+DEF robot-2 E-puck {
+  translation 0.5624999999032935 -6.396820998649105e-05 0.062499999999918975
+  rotation 2.9775470625255925e-06 0.999999999991132 2.9782934461190887e-06 1.5700000000088492
+  name "e-puck2"
+  controller "<extern>"
+  supervisor TRUE
+  receiver_channel 2
+}
+RectangleArena {
+  floorSize 2 2
+  floorTileSize 2 2
+  floorAppearance PBRAppearance {
+    metalness 0
+    normalMap ImageTexture {
+      url [
+        "Map_1.png"
+      ]
+    }
+  }
+}
