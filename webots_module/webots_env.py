@@ -22,6 +22,7 @@ class WebotsEnv(MultiAgentEnv):
     def __init__(self):
         self.agent_1 = 0
         self.agent_2 = 1
+        self.step_nums = 0
         sp = subprocess.Popen(['webots', "worlds/e-puck.wbt", '--minimize'])
         self.webots_pid = sp.pid
         os.environ["WEBOTS_PID"] = str(self.webots_pid)
@@ -56,16 +57,19 @@ class WebotsEnv(MultiAgentEnv):
         self.leftMotor.setVelocity(0.0)
         self.rightMotor.setVelocity(0.0)
         self.sendAction(str({0: 0, 1: 0}))
+        self.step_nums = 0
         obs = {
-            self.agent_1: [0, 0, 0, 0, 0, 0],
-            self.agent_2: [0, 0, 0, 0, 0, 0]
+            self.agent_1: [0, 0, -0.2, 0, 0.2, 0.1],
+            self.agent_2: [0, 0, 0.2, 0.1, -0.2, 0]
         }
         return obs
 
     # step the action(for both robot1 and robot2)
     def step(self, action):
+        k = 40
         self.supervisor.step(self.timestep)
         self.sendAction(str(action))
+        self.step_nums += 1
         position1 = self.supervisor.getFromDef("robot-1").getPosition()
         position2 = self.supervisor.getFromDef("robot-2").getPosition()
         rotation1 = self.supervisor.getFromDef("robot-1").getField("rotation").getSFRotation()[3]
@@ -82,17 +86,28 @@ class WebotsEnv(MultiAgentEnv):
         }
         reward = {
             self.agent_1: 0,
-            self.agent_2: 1
+            self.agent_2: 0
         }
-        if math.pow((x1_position - x2_position), 2) + math.pow((z1_position - z2_position), 2) < 0.2:
-            reward[self.agent_1] = 0.1
-        elif math.pow((x1_position - x2_position), 2) + math.pow((z1_position - z2_position), 2) < 0.05:
-            reward[self.agent_1] = 1
+        distance = math.pow((x1_position - x2_position), 2) + math.pow((z1_position - z2_position), 2)
+        if distance < 0.0036:
+            reward[self.agent_1] = -1
+        elif distance > 0.1:
+            reward[self.agent_1] = -0.01
+        elif distance > 0.0324:
+            reward[self.agent_1] = 0
+        else:
+            reward[self.agent_1] = 1 - abs(k * (0.018 - distance))
         done = {
             '__all__': False,
             self.agent_1: False,
             self.agent_2: False
         }
+        if self.step_nums==200:
+            done = {
+                '__all__': True,
+                self.agent_1: True,
+                self.agent_2: True
+            }
         info = {}
         return obs, reward, done, info
 
