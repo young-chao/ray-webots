@@ -1,7 +1,9 @@
 from controller import Robot
+import sys
 
+print("Python Version {}".format(str(sys.version).replace('\n', '')))
 # time in [ms] of a simulation step
-TIME_STEP = 64
+TIME_STEP = 1600
 
 MAX_SPEED = 6.28
 

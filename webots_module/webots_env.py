@@ -22,13 +22,13 @@ class WebotsEnv(MultiAgentEnv):
     def __init__(self):
         self.agent_1 = 0
         self.agent_2 = 1
-        sp = subprocess.Popen(['webots', '--minimize'])
+        sp = subprocess.Popen(['webots', "worlds/e-puck.wbt", '--minimize'])
         self.webots_pid = sp.pid
         os.environ["WEBOTS_PID"] = str(self.webots_pid)
         print(os.environ["WEBOTS_PID"])
         self.supervisor = Supervisor()
         self.map = area_map
-        self.timestep = 640
+        self.timestep = 1600
         self.max_speed = 6.28
         self.emitter = self.supervisor.getDevice("emitter")
         self.receiver = self.supervisor.getDevice("receiver")
