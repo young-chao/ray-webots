@@ -23,7 +23,9 @@ class WebotsEnv(MultiAgentEnv):
         self.agent_1 = 0
         self.agent_2 = 1
         self.step_nums = 0
-        sp = subprocess.Popen(['webots', "worlds/e-puck.wbt", '--minimize'])
+        # use the absolute path or main file's running path or no path for using default world file
+        # sp = subprocess.Popen(['webots', "worlds/e-puck.wbt", '--minimize'])  # run this right but ma_trial error
+        sp = subprocess.Popen(['webots', "../webots_module/worlds/e-puck.wbt", '--minimize'])
         self.webots_pid = sp.pid
         os.environ["WEBOTS_PID"] = str(self.webots_pid)
         print(os.environ["WEBOTS_PID"])
