@@ -46,7 +46,7 @@ class WebotsEnv(MultiAgentEnv):
         self.leftMotor.setVelocity(0.0)
         self.rightMotor.setVelocity(0.0)
         self.action_space = Discrete(5)
-        self.observation_space = Box(-16, 16, shape=(6,))
+        self.observation_space = Box(-16, 16, shape=(3,))
 
     # reset the env
     def reset(self):
@@ -61,8 +61,8 @@ class WebotsEnv(MultiAgentEnv):
         self.sendAction(str({0: 0, 1: 0}))
         self.step_nums = 0
         obs = {
-            self.agent_1: [0, 0, -0.2, 0, 0.2, 0.1],
-            self.agent_2: [0, 0, 0.2, 0.1, -0.2, 0]
+            self.agent_1: [0, -0.4, -0.1],
+            self.agent_2: [0, 0.4, 0.1]
         }
         return obs
 
@@ -76,35 +76,44 @@ class WebotsEnv(MultiAgentEnv):
         position2 = self.supervisor.getFromDef("robot-2").getPosition()
         rotation1 = self.supervisor.getFromDef("robot-1").getField("rotation").getSFRotation()[3]
         rotation2 = self.supervisor.getFromDef("robot-2").getField("rotation").getSFRotation()[3]
-        # rotation1 = int(rotation1 / 0.39)
-        # rotation2 = int(rotation2 / 0.39)
-        x1_position = int(math.floor((position1[0] + 0.5) / 0.125))
-        z1_position = int(math.floor((position1[2] + 0.5) / 0.125))
-        x2_position = int(math.floor((position2[0] + 0.5) / 0.125))
-        z2_position = int(math.floor((position2[2] + 0.5) / 0.125))
+        rotation1 = (rotation1 + 6.28) % 6.28
+        rotation2 = (rotation2 + 6.28) % 6.28
+        x1_position = position1[0]
+        z1_position = position1[2]
+        x2_position = position2[0]
+        z2_position = position2[2]
+        x1 = 0
+        z1 = -1
+        x2 = x2_position - x1_position
+        z2 = z2_position - z1_position
+        angle = math.acos((x1*x2+z1*z2)/(math.sqrt((x1**2+z1**2)*(x2**2+z2**2))))
+        print("The angle: ", rotation1)
+        if x2_position > x1_position:
+            angle = 6.28 - angle
         obs = {
-            self.agent_1: [rotation1, rotation2, x1_position, z1_position, x2_position, z2_position],
-            self.agent_2: [rotation2, rotation1, x2_position, z2_position, x1_position, z1_position]
+            self.agent_1: [angle-rotation1, x1_position-x2_position, z1_position-z2_position],
+            self.agent_2: [angle-rotation2, x2_position-x1_position, z2_position-z1_position]
         }
         reward = {
             self.agent_1: 0,
             self.agent_2: 0
         }
+        # 1/8=0.125 ^2=0.015625 0.06
         distance = math.pow((x1_position - x2_position), 2) + math.pow((z1_position - z2_position), 2)
         if distance < 0.0036:
             reward[self.agent_1] = -1
-        elif distance > 0.1:
-            reward[self.agent_1] = -0.01
-        elif distance > 0.0324:
-            reward[self.agent_1] = 0
+        elif distance < 0.016:
+            reward[self.agent_1] = (162*distance - 1.58)*(1-abs(rotation1-angle)/6.28)
+        elif distance < 0.064:
+            reward[self.agent_1] = (1.344 - 21*distance)*(1-abs(rotation1-angle)/6.28)
         else:
-            reward[self.agent_1] = 1 - abs(k * (0.018 - distance))
+            reward[self.agent_1] = 0.064 - distance
         done = {
             '__all__': False,
             self.agent_1: False,
             self.agent_2: False
         }
-        if self.step_nums==200:
+        if self.step_nums == 200:
             done = {
                 '__all__': True,
                 self.agent_1: True,
@@ -120,7 +129,7 @@ class WebotsEnv(MultiAgentEnv):
 
     # send the action to the robot2
     def sendAction(self, action):
-        print('send the action to the robot.')
+        # print('send the action to the robot.')
         string_action = action
         string_action = string_action.encode("utf-8")
         self.emitter.send(string_action)

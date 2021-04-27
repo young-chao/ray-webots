@@ -10,7 +10,7 @@ from webots_module.webots_env import WebotsEnv
 ray.init()
 
 register_env("Webots-v0", lambda _: WebotsEnv())
-obs_space = Box(-16, 16, shape=(6,))
+obs_space = Box(-16, 16, shape=(3,))
 act_space = Discrete(5)
 
 MY_Trainer = build_trainer(
@@ -33,7 +33,7 @@ config = {
 }
 trainer = MY_Trainer(env='Webots-v0', config=config)
 
-for i in range(10):
+for i in range(200):
     result = trainer.train()
     print(pretty_print(result))
 
